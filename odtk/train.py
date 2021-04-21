@@ -37,7 +37,7 @@ def train(model, state, path, annotations, val_path, val_annotations, resize, ma
     optimizer = SGD(model.parameters(), lr=lr, weight_decay=regularization_l2, momentum=0.9)
 
     is_master = rank==0
-    if ~no_apex:
+    if not no_apex:
         loss_scale = "dynamic" if use_dali else "128.0"
         model, optimizer = amp.initialize(model, optimizer,
                                         opt_level='O2' if mixed_precision else 'O0',
@@ -104,7 +104,7 @@ def train(model, state, path, annotations, val_path, val_annotations, resize, ma
             profiler.start('fw')
 
             optimizer.zero_grad()
-            if ~no_apex:
+            if not no_apex:
                 cls_loss, box_loss = model([data.contiguous(memory_format=torch.channels_last), target])
             else:
                 with autocast():
@@ -114,7 +114,7 @@ def train(model, state, path, annotations, val_path, val_annotations, resize, ma
 
             # Backward pass
             profiler.start('bw')
-            if ~no_apex:
+            if not no_apex:
                 with amp.scale_loss(cls_loss + box_loss, optimizer) as scaled_loss:
                     scaled_loss.backward()
                 optimizer.step()
@@ -188,7 +188,7 @@ def train(model, state, path, annotations, val_path, val_annotations, resize, ma
             if val_annotations and (iteration == iterations or iteration % val_iterations == 0):
                 stats = infer(model, val_path, None, resize, max_size, batch_size, annotations=val_annotations,
                             mixed_precision=mixed_precision, is_master=is_master, world=world, use_dali=use_dali,
-                            is_validation=True, verbose=False, rotated_bbox=rotated_bbox)
+                            no_apex=no_apex, is_validation=True, verbose=False, rotated_bbox=rotated_bbox)
                 model.train()
                 if is_master and logdir is not None and stats is not None:
                     writer.add_scalar(
