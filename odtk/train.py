@@ -2,7 +2,7 @@ from statistics import mean
 from math import isfinite
 import torch
 from torch.optim import SGD, AdamW
-from torch.optim.lr_scheduler import LambdaLR, SAVE_STATE_WARNING
+from torch.optim.lr_scheduler import LambdaLR
 from apex import amp, optimizers
 from apex.parallel import DistributedDataParallel as ADDP
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -13,9 +13,6 @@ from .data import DataIterator, RotatedDataIterator
 from .dali import DaliDataIterator
 from .utils import ignore_sigint, post_metrics, Profiler
 from .infer import infer
-
-import warnings
-warnings.filterwarnings('ignore', message=SAVE_STATE_WARNING, category=UserWarning)
 
 
 def train(model, state, path, annotations, val_path, val_annotations, resize, max_size, jitter, batch_size, iterations,
